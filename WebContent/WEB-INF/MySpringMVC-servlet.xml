@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+     http://www.springframework.org/schema/beans/spring-beans-3.0.xsd  
+     http://www.springframework.org/schema/context  
+     http://www.springframework.org/schema/context/spring-context-3.0.xsd  
+     http://www.springframework.org/schema/mvc
+     http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd">
+     
+    <!-- HandlerMapping -->
+	<!-- 映射处理器：请求的URL和Bean名字映射 -->
+<!--     <bean class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping"/> -->
+       
+    <!-- HandlerAdapter -->
+    <!-- 处理器适配 -->
+    <bean class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter"/>
+    
+    <!-- ViewResolver -->
+    <!-- 视图解析 -->
+	<!-- InternalResourceViewResolver：用于支持Servlet、JSP视图解析 -->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<!-- JstlView表示JSP模板页面需要使用JSTL标签库，classpath中必须包含jstl的相关jar包 -->
+        <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+		<!-- 查找视图页面的前缀和后缀 -->
+        <property name="prefix" value="/WEB-INF/views/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+    
+    <!-- 处理器 -->
+    <bean name="/hello2" class="chapter2.controller.HelloWorldController"/>
+    
+    <bean name="/hello4" class="chapter4.controller.HelloWorldController">
+		<!-- 只支持POST请求，如果是GET请求客户端将收到“HTTP Status 405 - Request method 'GET' not supported”。 -->
+    	<property name="supportedMethods" value="POST"></property>
+		
+		<!-- 当前请求的session前置条件检查，如果当前请求无session将抛出HttpSessionRequiredException异常 -->
+    	<property name="requireSession" value="true"/>
+    </bean>
+    
+    <bean name="/helloCache" class="chapter4.controller.HelloWorldCacheController">
+		<!-- 告诉浏览器缓存5秒 -->
+		<property name="cacheSeconds" value="5"/>
+		<!-- 不缓存，cacheSeconds=0 -->
+<!--     	<property name="cacheSeconds" value="0"/> -->
+	</bean>
+
+    <bean name="/helloLastModified" class="chapter4.controller.HelloWorldLastModifiedCacheController"/>
+    
+    <bean name="/abstractCommand" class="chapter4.controller.MyAbstractCommandController"/>
+    
+	<bean name="/simpleForm" class="chapter4.controller.RegisterSimpleFormController">  
+            <property name="formView" value="register"/>  
+            <property name="successView" value="redirect:/success"/>  
+    </bean>
+    
+    <bean name="/canCancelForm" class="chapter4.controller.CanCancelRegisterSimpleFormController">  
+        <property name="formView" value="register"/>  
+        <property name="successView" value="redirect:/success"/>  
+        <property name="cancelView" value="redirect:/cancel"/>  
+	</bean>
+    
+    <bean name="/success" class="chapter4.controller.SuccessController"/>
+	
+	<bean name="/cancel" class="chapter4.controller.CancelController"/>
+	
+	<bean name="/infoFillWizard" class="chapter4.controller.InfoFillWizardFormController">  
+	    <property name="pages">
+	        <list>
+	            <value>wizard/baseInfo</value>
+	            <value>wizard/schoolInfo</value>
+	            <value>wizard/workInfo</value>
+	       </list>  
+	    </property>  
+	</bean>
+	
+	<!-- 参数化视图控制器，不进行功能处理（即静态视图），根据参数的逻辑视图名直接选择需要展示的视图 -->
+	<bean name="/parameterizableView" class="org.springframework.web.servlet.mvc.ParameterizableViewController">  
+		<property name="viewName" value="success"/>  
+	</bean>
+	
+	<!-- 将请求的URL路径转换为逻辑视图名并返回的转换控制器，即不需要功能处理，直接根据URL计算出逻辑视图名，并选择具体视图进行展示 -->
+	<!-- Ant-style 模式 -->
+	<!-- 可以匹配/index1/demo，但不匹配/index1/demo/demo，如/index1/demo逻辑视图名为demo； -->
+	<bean name="/index/*" class="org.springframework.web.servlet.mvc.UrlFilenameViewController"/>
+	
+	<!-- <bean name="/dataBind" class="chapter4.controller.DataBinderTestController"/> -->
+	
+	<!-- 注册WebBindingInitializer实现 -->
+    <bean id="myWebBindingInitializer" class="chapter4.controller.support.initializer.MyWebBindingInitializer"/>
+    <bean name="/dataBind" class="chapter4.controller.DataBinderTestController">
+        <!-- 注入WebBindingInitializer实现 -->
+        <property name="webBindingInitializer" ref="myWebBindingInitializer"/>
+    </bean>
+    
+    <bean name="/test" class="chapter5.controller.TestController"/>  
+	<bean id="handlerInterceptor1" class="chapter5.interceptor.HandlerInterceptor1"/>
+	<bean id="handlerInterceptor2" class="chapter5.interceptor.HandlerInterceptor2"/>
+	
+	<bean class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping">
+	    <property name="interceptors">
+	        <list>
+	          <ref bean="handlerInterceptor1"/>
+	          <ref bean="handlerInterceptor2"/>
+	        </list>
+	    </property>
+	</bean>
+	
+	<bean class="chapter6.controller.HelloWorldController"/>
+	<bean class="chapter6.controller.ConsumesController"/>
+	<bean class="chapter6.controller.MethodParamTypeController"/>
+	<bean class="chapter6.controller.RequestParamController"/>
+	
+	<!-- Spring3.1之前的注解 HandlerMapping -->
+<!-- 	<bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping"/>   -->
+	<!-- Spring3.1之前的注解 HandlerAdapter -->
+<!-- 	<bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter"/> -->
+	
+	<!-- Spring3.1开始的注解 HandlerMapping -->
+	<bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping"/>
+	<!-- Spring3.1开始的注解 HandlerAdapter -->
+	<bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter"/>
+</beans>
